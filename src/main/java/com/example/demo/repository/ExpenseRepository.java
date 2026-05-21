@@ -1,14 +1,15 @@
 package com.example.demo.repository;
 
-import com.example.demo.model.Expenses;
+import com.example.demo.model.Expense;
+
 import org.springframework.data.mongodb.repository.MongoRepository;
+
 import java.util.List;
 
-public interface ExpenseRepository extends MongoRepository<Expenses, String> {
+public interface ExpenseRepository extends MongoRepository<Expense, String> {
 
-    // Custom query to find expenses by category
-    List<Expenses> findByCategory(String category);
+    List<Expense> findByTitle(String title);
 
-    // Custom query to find expenses by name (if needed)
-    List<Expenses> findByName(String name);
+    // 🔍 Search by category
+    List<Expense> findByCategory(String category);
 }

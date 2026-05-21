@@ -1,60 +1,89 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.Expenses;
+import com.example.demo.dto.ExpenseRequestDto;
+import com.example.demo.dto.ExpenseResponseDto;
 import com.example.demo.service.ExpenseService;
+
+import io.swagger.v3.oas.annotations.Operation;
+
 import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/expenses")
+@RequestMapping("/api/v1/expenses")
 public class ExpenseController {
 
     @Autowired
     private ExpenseService expenseService;
 
-    // GET all expenses
+    // GET ALL EXPENSES
+    @Operation(summary = "Get all expenses")
     @GetMapping
-    public ResponseEntity<List<Expenses>> getAllExpenses() {
-        return new ResponseEntity<>(expenseService.getAllExpenses(), HttpStatus.OK);
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public List<ExpenseResponseDto> getAllExpenses() {
+        return expenseService.getAllExpenses();
     }
 
-    // GET
-    @Cacheable(value = "expenses", key = "#id")
+    // GET EXPENSE BY ID
+    @Operation(summary = "Get expense by ID")
     @GetMapping("/{id}")
-    public ResponseEntity<Expenses> getExpenseById(@PathVariable String id) {
-        return new ResponseEntity<>(expenseService.getExpenseById(id), HttpStatus.OK);
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ExpenseResponseDto getExpenseById(@PathVariable String id) {
+        return expenseService.getExpenseById(id);
     }
 
-    // POST
-    @CacheEvict(value = "expenses", allEntries = true)
+    // CREATE EXPENSE
+    @Operation(summary = "Create new expense")
     @PostMapping
-    public ResponseEntity<Expenses> createExpense(@Valid @RequestBody Expenses expense) {
-        return new ResponseEntity<>(expenseService.createExpense(expense), HttpStatus.CREATED);
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ExpenseResponseDto createExpense(
+            @Valid @RequestBody ExpenseRequestDto dto) {
+
+        return expenseService.createExpense(dto);
     }
 
-    // PUT
-    @CacheEvict(value = "expenses", key = "#id")
+    // UPDATE EXPENSE
+    @Operation(summary = "Update expense")
     @PutMapping("/{id}")
-    public ResponseEntity<Expenses> updateExpense(@PathVariable String id, @Valid @RequestBody Expenses expense) {
-        return new ResponseEntity<>(expenseService.updateExpense(id, expense), HttpStatus.OK);
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ExpenseResponseDto updateExpense(
+            @PathVariable String id,
+            @Valid @RequestBody ExpenseRequestDto dto) {
+
+        return expenseService.updateExpense(id, dto);
     }
 
-    // DELETE
-    @CacheEvict(value = "expenses", key = "#id")
+    // DELETE EXPENSE (ONLY ADMIN)
+    @Operation(summary = "Delete expense")
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteExpense(@PathVariable String id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteExpense(@PathVariable String id) {
         expenseService.deleteExpense(id);
-        return new ResponseEntity<>("Expense deleted successfully", HttpStatus.OK);
+    }
+
+    // PAGINATION + SORTING
+    @Operation(summary = "Get expenses with pagination and sorting")
+    @GetMapping("/pagination")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public Page<ExpenseResponseDto> getExpensesWithPagination(
+
+            @RequestParam(defaultValue = "0") int page,
+
+            @RequestParam(defaultValue = "5") int size,
+
+            @RequestParam(defaultValue = "amount") String sortBy
+    ) {
+
+        return expenseService.getExpensesWithPagination(
+                page,
+                size,
+                sortBy
+        );
     }
 }
-
-
-
-

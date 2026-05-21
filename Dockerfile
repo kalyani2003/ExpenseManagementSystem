@@ -1,13 +1,14 @@
-# Use a base image with JDK
-FROM openjdk:17-jdk-slim
+# Use Java 17 image
+FROM eclipse-temurin:17
 
+# Set working directory
 WORKDIR /app
-# Copy the compiled Spring Boot JAR into the container
-COPY build/libs/demo-0.0.1-SNAPSHOT.jar app.jar
 
-# Expose the port the app will run on
-EXPOSE 8080
+# Copy jar file
+COPY build/libs/ExpensesProject-0.0.1-SNAPSHOT.jar app.jar
 
-# Command to run the application
+# Expose application port
+EXPOSE 8081
+
+# Run application
 ENTRYPOINT ["java", "-jar", "app.jar"]
-
