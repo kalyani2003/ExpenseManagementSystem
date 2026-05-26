@@ -31,6 +31,9 @@ public class ExpenseService {
     @Autowired
     private ExpenseRepository expenseRepository;
 
+    @Autowired
+    private KafkaProducerService kafkaProducerService;
+
     // ✅ GET ALL EXPENSES
     @Cacheable("allExpenses")
     public List<ExpenseResponseDto> getAllExpenses() {
@@ -83,6 +86,11 @@ public class ExpenseService {
 
         Expense savedExpense =
                 expenseRepository.save(expense);
+
+        // ✅ SEND MESSAGE TO KAFKA
+        kafkaProducerService.sendMessage(
+                "New Expense Added: " + savedExpense.getTitle()
+        );
 
         return new ExpenseResponseDto(
                 savedExpense.getId(),
